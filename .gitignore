@@ -1,0 +1,10 @@
+task-manager-ui/node_modules/*
+task-manager-ui/build/*
+task-manager-ui/.vscode/*
+
+TaskManagerApi/.vs/*
+TaskManagerApi/bin/*
+TaskManagerApi/obj/*
+TaskManagerApi/Logs/*
+
+.github/*
