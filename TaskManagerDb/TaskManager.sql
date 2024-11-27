@@ -2,4 +2,13 @@ use TaskManager
 go
 
 select *
-from dbo.AspNetRoles;
+from dbo.AspNetUserRoles;
+
+select *
+from dbo.AspNetUsers;
+
+select *
+from dbo.AspNetUserRoles;
+
+delete from dbo.AspNetUserRoles;
+delete from dbo.AspNetUsers;
