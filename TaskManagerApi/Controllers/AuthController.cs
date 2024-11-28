@@ -84,6 +84,13 @@ namespace TaskManagerApi.Controllers
             ApiResponse res;
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    List<string> errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    res = ResponseHelper.CreateResponse(HttpStatusCode.BadRequest, msg: "Validation failed", errors: errors);
+                    return BadRequest(res);
+                }
+
                 User? user = await _userManager.FindByNameAsync(dto.UserName);
                 if (user == null)
                 {
