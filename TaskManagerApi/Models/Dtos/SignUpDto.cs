@@ -1,6 +1,6 @@
 ﻿namespace TaskManagerApi.Models.Dtos
 {
-    public class UserSignUpDto
+    public class SignUpDto
     {
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
