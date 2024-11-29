@@ -10,14 +10,14 @@ import {
    SidebarProvider,
    SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { Calendar, ListChecks, Inbox, Search, Settings } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
 
 const items = [
    {
-      title: "Home",
+      title: "Tasks",
       url: "/home",
-      icon: Home,
+      icon: ListChecks,
    },
    {
       title: "Inbox",
