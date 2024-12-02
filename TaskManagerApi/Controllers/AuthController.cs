@@ -1,4 +1,4 @@
-﻿using Azure.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -28,7 +28,7 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpPost("signup")]
-        public async Task<ActionResult<ApiResponse>> SignUp([FromBody] SignUpDto dto)
+        public async Task<ActionResult<ApiResponse>> Signup([FromBody] SignUpDto dto)
         {
             ApiResponse res;
             try
@@ -79,7 +79,7 @@ namespace TaskManagerApi.Controllers
         }
 
         [HttpPost("signin")]
-        public async Task<ActionResult<ApiResponse>> SignIn([FromBody] SignInDto dto)
+        public async Task<ActionResult<ApiResponse>> Signin([FromBody] SignInDto dto)
         {
             ApiResponse res;
             try
@@ -115,6 +115,28 @@ namespace TaskManagerApi.Controllers
                 _context.Users.Update(user);
                 await _context.SaveChangesAsync();
 
+                var accessTokenOps = new CookieOptions
+                {
+                    HttpOnly = true,       // Prevents access via JavaScript
+                    Secure = true,         // Ensures the cookie is only sent over HTTPS
+                    SameSite = SameSiteMode.None,  // Prevents CSRF attacks
+                    Expires = DateTime.UtcNow.AddHours(1)  // Set the expiration of the token (optional)
+                };
+
+                // Append the token to the response as a cookie
+                Response.Cookies.Append("AccessToken", accessToken, accessTokenOps);
+
+                var refreshTokenOps = new CookieOptions
+                {
+                    HttpOnly = true,       // Prevents access via JavaScript
+                    Secure = true,         // Ensures the cookie is only sent over HTTPS
+                    SameSite = SameSiteMode.None,  // Prevents CSRF attacks
+                    Expires = DateTime.UtcNow.AddHours(1)  // Set the expiration of the token (optional)
+                };
+
+                // Append the token to the response as a cookie
+                Response.Cookies.Append("RefreshToken", refreshToken, refreshTokenOps);
+
                 res = ResponseHelper.CreateResponse(
                     HttpStatusCode.OK, 
                     new 
@@ -124,7 +146,6 @@ namespace TaskManagerApi.Controllers
                         Email = user.Email,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
-                        Token = accessToken,
                     }, 
                     true, 
                     "Sign in successfull"
@@ -136,6 +157,48 @@ namespace TaskManagerApi.Controllers
             {
                 List<string> errs = new List<string> { e.Message, e.StackTrace };
                 res = ResponseHelper.CreateResponse(HttpStatusCode.InternalServerError, msg: "An unexpected error occurred", errors: errs);
+                return StatusCode((int)HttpStatusCode.InternalServerError, res);
+            }
+        }
+
+        [HttpPost("signout")]
+        [Authorize]
+        public async Task<ActionResult<ApiResponse>> Signout()
+        {
+            ApiResponse res;
+            try
+            {
+                User? user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    res = ResponseHelper.CreateResponse(
+                        HttpStatusCode.Unauthorized,
+                        msg: "User not found"
+                    );
+                    return Unauthorized(res);
+                }
+
+                user.RefreshToken = "";
+                user.RefreshTokenExpiryTime = DateTime.MinValue;
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+                await _signInManager.SignOutAsync();
+
+                res = ResponseHelper.CreateResponse(
+                    HttpStatusCode.OK,
+                    success: true,
+                    msg: "Sign out successful"
+                );
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                res = ResponseHelper.CreateResponse(
+                    statusCode: HttpStatusCode.InternalServerError,
+                    msg: "An error occurred during sign out",
+                    errors: new List<string> { ex.Message, ex.StackTrace }
+                );
                 return StatusCode((int)HttpStatusCode.InternalServerError, res);
             }
         }
