@@ -131,7 +131,7 @@ namespace TaskManagerApi.Controllers
                     HttpOnly = true,       // Prevents access via JavaScript
                     Secure = true,         // Ensures the cookie is only sent over HTTPS
                     SameSite = SameSiteMode.None,  // Prevents CSRF attacks
-                    Expires = DateTime.UtcNow.AddHours(1)  // Set the expiration of the token (optional)
+                    Expires = DateTime.UtcNow.AddDays(7)  // Set the expiration of the token (optional)
                 };
 
                 // Append the token to the response as a cookie
